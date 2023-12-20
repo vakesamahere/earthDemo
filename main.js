@@ -1,10 +1,9 @@
-import * as THREE from './build/three.module.js'
-//import {OrbitControls} from './build/OrbitControls.js';//???
+import * as THREE from './build/three.module.js';
 
 
 const dragSensitive = 1
 const n = 0.1
-const rotationSpeed = 0.1/1200
+const rotationSpeed = 0.1/3600
 
 const scene = new THREE.Scene()
 const camera = new THREE.PerspectiveCamera(
@@ -23,25 +22,27 @@ renderer.setSize(innerWidth,innerHeight)
 renderer.setPixelRatio(window.devicePixelRatio)
 document.body.appendChild(renderer.domElement)
 
-//create a sphere
-const sphere = new THREE.Mesh(
-        new THREE.SphereGeometry(5,50,50),
+//create an earth
+const earthGeometry = new THREE.SphereGeometry(5,50,50)
+const earth = new THREE.Mesh(
+        earthGeometry,
         new THREE.MeshBasicMaterial({
             map: new THREE.TextureLoader().load('./globe/earth@0.1.jpg')
         })
     )
-sphere.rotation.set(0,0,0)
-scene.add(sphere)
+earth.rotation.set(0.15,Math.PI*0.83,0)
+scene.add(earth)
 
 //赤道
-const geometry = new THREE.PlaneGeometry(12, 12, 32, 32);
+
+const geometry = new THREE.TorusGeometry(6.3,0.03,1000,1000,20)
 const material = new THREE.MeshBasicMaterial({
-color: 0x112233,
-side: THREE.DoubleSide
+color: 0xBB7777,
+//side: THREE.DoubleSide
 });
 const plane = new THREE.Mesh(geometry, material);
 plane.position.set(0, 0, 0);
-plane.rotation.x = Math.PI / 2;
+plane.rotation.x = earth.rotation.x + Math.PI / 2;
 scene.add(plane);
 
 
@@ -52,6 +53,19 @@ let mousePos = {
     x: 0,
     y: 0
 }
+let shifting = false;
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Shift') {
+    shifting = true;
+  }
+});
+
+document.addEventListener('keyup', (event) => {
+  if (event.key === 'Shift') {
+    shifting = false;
+  }
+});
 
 function onDocumentMouseDown(event) {
     mousePos = {
@@ -66,21 +80,26 @@ function onDocumentMouseDown(event) {
 
 function onDocumentMouseMove(event) {
     if (isDragging) {
-    //    /*
-        const deltaX = event.clientX - innerWidth/2 //mousePos.x
-        const deltaY = event.clientY - innerHeight/2 //mousePos.y
-        //sphere.rotation.y += deltaX * 0.001 * dragSensitive
-        //sphere.rotation.x += deltaY * 0.001 * dragSensitive
-        if(deltaY!=0){
-            const k = Math.tan(deltaX,deltaY);
-            rotateXZ(plane,k)
-            rotateXZ(sphere,k)
-            
-        }else if(deltaX!=0){
-            const k = deltaY/deltaX;
-            rotateYZ(plane,k)
-            rotateYZ(sphere,k)
+		
+		const deltaX = event.clientX - mousePos.x;
+        const deltaY = event.clientY - mousePos.y;
+		
+		const rotationY = (deltaX / window.innerWidth) * Math.PI * 2;
+        const rotationX = (deltaY / window.innerHeight) * Math.PI * 2;
+		
+        if(!shifting)earth.rotation.x += rotationX;
+		earth.rotation.y += rotationY;
+		
+		mousePos.x = event.clientX;
+        mousePos.y = event.clientY;
+
+        if(earth.rotation.x>Math.PI/2){
+            earth.rotation.x=Math.PI/2;
         }
+        if(earth.rotation.x<-Math.PI/2){
+            earth.rotation.x=-Math.PI/2;
+        }
+        plane.rotation.x=earth.rotation.x-Math.PI/2;
     }
 }
 
@@ -128,38 +147,14 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
   }
 
-  function rotateXZ(self,k){
-    return;//先别
-    let dx = self.rotation.x * Math.cos(n) * Math.cos(n) + self.rotation.z * k * Math.sin(n) * Math.cos(n) - self.rotation.x;
-    let dz = self.rotation.x * k * Math.sin(n) * Math.cos(n) + self.rotation.z * Math.cos(n) * Math.cos(n) - self.rotation.z;
-    const mod = Math.sqrt(Math.pow(dx,2)+Math.pow(dz,2))
-    dx/=mod;
-    dz/=mod;
-    console.log(k,dx,0,dz)
-    self.rotation.x += dx * 0.001 * dragSensitive
-    self.rotation.z += dz * 0.001 * dragSensitive
-  }
-  function rotateYZ(self,k){
-    return;//先别
-    let dy = self.rotation.y * Math.cos(n) * Math.cos(n) + self.rotation.z * k * Math.sin(n) * Math.cos(n) - self.rotation.y;
-    let dz = -self.rotation.y * k * Math.sin(n) * Math.cos(n) + self.rotation.z * Math.cos(n) * Math.cos(n) - self.rotation.z;
-    const mod = Math.sqrt(Math.pow(dy,2)+Math.pow(dz,2))
-    dy/=mod;
-    dz/=mod;
-    console.log(k,0,dy,dz)
-    self.rotation.y += dy * 0.001 * dragSensitive
-    self.rotation.z += dz * 0.001 * dragSensitive
-  }
-
 //animate
-//const controls = new THREE.OrbitControls(camera, renderer.domElement);
 let time = performance.now();
 function animate(){
     requestAnimationFrame(animate)
-    //controls.update();
     const angle = -(performance.now()-time) * rotationSpeed;
-    sphere.rotation.y -= angle;
+    if(!isDragging)earth.rotation.y -= angle;
     time=performance.now();
+    console.log(earth.rotation.x,earth.rotation.y)
     renderer.render(scene,camera)
 }
 animate()
