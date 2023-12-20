@@ -98,7 +98,7 @@ document.addEventListener('mouseup', onDocumentMouseUp)
 
 document.addEventListener('wheel', (event) => {
     const delta = event.deltaY;
-    const fov = camera.fov - delta * 0.1;
+    const fov = camera.fov + delta * 0.1;
     camera.fov = fov;
     camera.updateProjectionMatrix();
   });
@@ -106,9 +106,31 @@ document.addEventListener('wheel', (event) => {
 let time = performance.now();
 function animate(){
     requestAnimationFrame(animate)
-    const angle = (performance.now()-time) * rotationSpeed;
-    sphere.rotation.y += angle;
+    const angle = -(performance.now()-time) * rotationSpeed;
+    sphere.rotation.y -= angle;
     time=performance.now();
     renderer.render(scene,camera)
 }
 animate()
+
+
+window.addEventListener('resize', () => {
+    // 重新填充窗口
+    resizeRenderer();
+  });
+  
+  // 重新填充窗口
+  function resizeRenderer() {
+    // 获取当前显示窗口的大小
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+  
+    // 设置渲染器的大小
+    renderer.setSize(width, height);
+  
+    // 更新相机的宽高比
+    camera.aspect = width / height;
+  
+    // 更新相机的投影矩阵
+    camera.updateProjectionMatrix();
+  }
