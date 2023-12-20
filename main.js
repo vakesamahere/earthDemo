@@ -31,6 +31,18 @@ const sphere = new THREE.Mesh(
 
 scene.add(sphere)
 
+//赤道
+const geometry = new THREE.PlaneGeometry(12, 12, 32, 32);
+const material = new THREE.MeshBasicMaterial({
+color: 0x112233,
+side: THREE.DoubleSide
+});
+const plane = new THREE.Mesh(geometry, material);
+plane.position.set(0, 0, 0);
+plane.rotation.x = Math.PI / 2;
+//scene.add(plane);
+
+
 camera.position.z = 10
 
 let isDragging = false
@@ -68,6 +80,9 @@ function onDocumentMouseMove(event) {
 
             sphere.rotation.x += dx * 0.001 * dragSensitive
             sphere.rotation.z += dz * 0.001 * dragSensitive
+
+            plane.rotation.set(sphere.rotation.x+Math.PI/2,sphere.rotation.y,sphere.rotation.z)
+            
         }else if(deltaX!=0){
             const k = deltaY/deltaX;
             let dy = sphere.rotation.y * Math.cos(n) * Math.cos(n) + sphere.rotation.z * k * Math.sin(n) * Math.cos(n) - sphere.rotation.y;
@@ -78,6 +93,7 @@ function onDocumentMouseMove(event) {
             console.log(k,0,dy,dz)
             sphere.rotation.y += dy * 0.001 * dragSensitive
             sphere.rotation.z += dz * 0.001 * dragSensitive
+            plane.rotation.set(sphere.rotation.x+Math.PI/2,sphere.rotation.y,sphere.rotation.z)
         }
     }
 }
