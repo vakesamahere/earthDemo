@@ -1,4 +1,6 @@
 import * as THREE from './build/three.module.js'
+//import {OrbitControls} from './build/OrbitControls.js';//???
+
 
 const dragSensitive = 1
 const n = 0.1
@@ -28,7 +30,7 @@ const sphere = new THREE.Mesh(
             map: new THREE.TextureLoader().load('./globe/earth@0.1.jpg')
         })
     )
-
+sphere.rotation.set(0,0,0)
 scene.add(sphere)
 
 //赤道
@@ -40,7 +42,7 @@ side: THREE.DoubleSide
 const plane = new THREE.Mesh(geometry, material);
 plane.position.set(0, 0, 0);
 plane.rotation.x = Math.PI / 2;
-//scene.add(plane);
+scene.add(plane);
 
 
 camera.position.z = 10
@@ -67,33 +69,17 @@ function onDocumentMouseMove(event) {
     //    /*
         const deltaX = event.clientX - innerWidth/2 //mousePos.x
         const deltaY = event.clientY - innerHeight/2 //mousePos.y
-        sphere.rotation.y += deltaX * 0.001 * dragSensitive
-        sphere.rotation.x += deltaY * 0.001 * dragSensitive
+        //sphere.rotation.y += deltaX * 0.001 * dragSensitive
+        //sphere.rotation.x += deltaY * 0.001 * dragSensitive
         if(deltaY!=0){
             const k = Math.tan(deltaX,deltaY);
-            let dx = sphere.rotation.x * Math.cos(n) * Math.cos(n) + sphere.rotation.z * k * Math.sin(n) * Math.cos(n) - sphere.rotation.x;
-            let dz = sphere.rotation.x * k * Math.sin(n) * Math.cos(n) + sphere.rotation.z * Math.cos(n) * Math.cos(n) - sphere.rotation.z;
-            const mod = Math.sqrt(Math.pow(dx,2)+Math.pow(dz,2))
-            dx/=mod;
-            dz/=mod;
-            console.log(k,dx,0,dz)
-
-            sphere.rotation.x += dx * 0.001 * dragSensitive
-            sphere.rotation.z += dz * 0.001 * dragSensitive
-
-            plane.rotation.set(sphere.rotation.x+Math.PI/2,sphere.rotation.y,sphere.rotation.z)
+            rotateXZ(plane,k)
+            rotateXZ(sphere,k)
             
         }else if(deltaX!=0){
             const k = deltaY/deltaX;
-            let dy = sphere.rotation.y * Math.cos(n) * Math.cos(n) + sphere.rotation.z * k * Math.sin(n) * Math.cos(n) - sphere.rotation.y;
-            let dz = -sphere.rotation.y * k * Math.sin(n) * Math.cos(n) + sphere.rotation.z * Math.cos(n) * Math.cos(n) - sphere.rotation.z;
-            const mod = Math.sqrt(Math.pow(dy,2)+Math.pow(dz,2))
-            dy/=mod;
-            dz/=mod;
-            console.log(k,0,dy,dz)
-            sphere.rotation.y += dy * 0.001 * dragSensitive
-            sphere.rotation.z += dz * 0.001 * dragSensitive
-            plane.rotation.set(sphere.rotation.x+Math.PI/2,sphere.rotation.y,sphere.rotation.z)
+            rotateYZ(plane,k)
+            rotateYZ(sphere,k)
         }
     }
 }
@@ -119,15 +105,6 @@ document.addEventListener('wheel', (event) => {
     camera.updateProjectionMatrix();
   });
 
-let time = performance.now();
-function animate(){
-    requestAnimationFrame(animate)
-    const angle = -(performance.now()-time) * rotationSpeed;
-    sphere.rotation.y -= angle;
-    time=performance.now();
-    renderer.render(scene,camera)
-}
-animate()
 
 
 window.addEventListener('resize', () => {
@@ -150,3 +127,39 @@ window.addEventListener('resize', () => {
     // 更新相机的投影矩阵
     camera.updateProjectionMatrix();
   }
+
+  function rotateXZ(self,k){
+    return;//先别
+    let dx = self.rotation.x * Math.cos(n) * Math.cos(n) + self.rotation.z * k * Math.sin(n) * Math.cos(n) - self.rotation.x;
+    let dz = self.rotation.x * k * Math.sin(n) * Math.cos(n) + self.rotation.z * Math.cos(n) * Math.cos(n) - self.rotation.z;
+    const mod = Math.sqrt(Math.pow(dx,2)+Math.pow(dz,2))
+    dx/=mod;
+    dz/=mod;
+    console.log(k,dx,0,dz)
+    self.rotation.x += dx * 0.001 * dragSensitive
+    self.rotation.z += dz * 0.001 * dragSensitive
+  }
+  function rotateYZ(self,k){
+    return;//先别
+    let dy = self.rotation.y * Math.cos(n) * Math.cos(n) + self.rotation.z * k * Math.sin(n) * Math.cos(n) - self.rotation.y;
+    let dz = -self.rotation.y * k * Math.sin(n) * Math.cos(n) + self.rotation.z * Math.cos(n) * Math.cos(n) - self.rotation.z;
+    const mod = Math.sqrt(Math.pow(dy,2)+Math.pow(dz,2))
+    dy/=mod;
+    dz/=mod;
+    console.log(k,0,dy,dz)
+    self.rotation.y += dy * 0.001 * dragSensitive
+    self.rotation.z += dz * 0.001 * dragSensitive
+  }
+
+//animate
+//const controls = new THREE.OrbitControls(camera, renderer.domElement);
+let time = performance.now();
+function animate(){
+    requestAnimationFrame(animate)
+    //controls.update();
+    const angle = -(performance.now()-time) * rotationSpeed;
+    sphere.rotation.y -= angle;
+    time=performance.now();
+    renderer.render(scene,camera)
+}
+animate()
