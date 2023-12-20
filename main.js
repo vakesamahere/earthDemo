@@ -119,8 +119,11 @@ document.addEventListener('mouseup', onDocumentMouseUp)
 
 document.addEventListener('wheel', (event) => {
     const delta = event.deltaY;
-    const fov = camera.fov + delta * 0.1;
+    let fov = camera.fov + delta * 0.1;
+    fov=Math.min(125,fov);
+    fov=Math.max(12.5,fov);
     camera.fov = fov;
+    console.log(fov)
     camera.updateProjectionMatrix();
   });
 
@@ -154,7 +157,7 @@ function animate(){
     const angle = -(performance.now()-time) * rotationSpeed;
     if(!isDragging)earth.rotation.y -= angle;
     time=performance.now();
-    console.log(earth.rotation.x,earth.rotation.y)
+    //console.log(earth.rotation.x,earth.rotation.y)
     renderer.render(scene,camera)
 }
 animate()
