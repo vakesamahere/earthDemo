@@ -1,7 +1,8 @@
 import * as THREE from './build/three.module.js'
 
-const dragSensitive = 10
+const dragSensitive = 1
 const n = 0.1
+const rotationSpeed = 0.1/1200
 
 const scene = new THREE.Scene()
 const camera = new THREE.PerspectiveCamera(
@@ -52,34 +53,29 @@ function onDocumentMouseDown(event) {
 function onDocumentMouseMove(event) {
     if (isDragging) {
     //    /*
-        const deltaX = event.clientX - mousePos.x
-        const deltaY = event.clientY - mousePos.y
+        const deltaX = event.clientX - innerWidth/2 //mousePos.x
+        const deltaY = event.clientY - innerHeight/2 //mousePos.y
         sphere.rotation.y += deltaX * 0.001 * dragSensitive
         sphere.rotation.x += deltaY * 0.001 * dragSensitive
         if(deltaY!=0){
-            const k = -deltaX/deltaY;
-            const newXAngle = sphere.rotation.x * Math.cos(n) * Math.cos(n) + sphere.rotation.z * k * Math.sin(n) * Math.cos(n);
-            const newYAngle = sphere.rotation.y;
-            const newZAngle = sphere.rotation.x * k * Math.sin(n) * Math.cos(n) + sphere.rotation.z * Math.cos(n) * Math.cos(n);
-            console.log(newXAngle-sphere.rotation.x,newYAngle-sphere.rotation.y,newZAngle-sphere.rotation.z)
-            const mod = Math.sqrt(newXAngle * newXAngle + newYAngle*newYAngle+newZAngle*newZAngle);
-            const dx=newXAngle/mod;
-            const dy=newYAngle/mod;
-            const dz=newZAngle/mod;
+            const k = Math.tan(deltaX,deltaY);
+            let dx = sphere.rotation.x * Math.cos(n) * Math.cos(n) + sphere.rotation.z * k * Math.sin(n) * Math.cos(n) - sphere.rotation.x;
+            let dz = sphere.rotation.x * k * Math.sin(n) * Math.cos(n) + sphere.rotation.z * Math.cos(n) * Math.cos(n) - sphere.rotation.z;
+            const mod = Math.sqrt(Math.pow(dx,2)+Math.pow(dz,2))
+            dx/=mod;
+            dz/=mod;
+            console.log(k,dx,0,dz)
+
             sphere.rotation.x += dx * 0.001 * dragSensitive
-            sphere.rotation.y += dy * 0.001 * dragSensitive
             sphere.rotation.z += dz * 0.001 * dragSensitive
         }else if(deltaX!=0){
             const k = deltaY/deltaX;
-            const newXAngle = sphere.rotation.x;
-            const newYAngle = sphere.rotation.y * Math.cos(n) * Math.cos(n) + sphere.rotation.z * k * Math.sin(n) * Math.cos(n);
-            const newZAngle = -sphere.rotation.y * k * Math.sin(n) * Math.cos(n) + sphere.rotation.z * Math.cos(n) * Math.cos(n);
-            console.log(newXAngle-sphere.rotation.x,newYAngle-sphere.rotation.y,newZAngle-sphere.rotation.z)
-            const mod = Math.sqrt(newXAngle * newXAngle + newYAngle*newYAngle+newZAngle*newZAngle);
-            const dx=newXAngle/mod;
-            const dy=newYAngle/mod;
-            const dz=newZAngle/mod;
-            sphere.rotation.x += dx * 0.001 * dragSensitive
+            let dy = sphere.rotation.y * Math.cos(n) * Math.cos(n) + sphere.rotation.z * k * Math.sin(n) * Math.cos(n) - sphere.rotation.y;
+            let dz = -sphere.rotation.y * k * Math.sin(n) * Math.cos(n) + sphere.rotation.z * Math.cos(n) * Math.cos(n) - sphere.rotation.z;
+            const mod = Math.sqrt(Math.pow(dy,2)+Math.pow(dz,2))
+            dy/=mod;
+            dz/=mod;
+            console.log(k,0,dy,dz)
             sphere.rotation.y += dy * 0.001 * dragSensitive
             sphere.rotation.z += dz * 0.001 * dragSensitive
         }
@@ -95,18 +91,24 @@ function onDocumentMouseUp(event) {
     }
 }
 
-function onMouseWheel(event) {
-    const delta = event.deltaY
-    camera.position.z += delta * 0.1
-}
 
 document.addEventListener('mousedown', onDocumentMouseDown)
 document.addEventListener('mousemove', onDocumentMouseMove)
 document.addEventListener('mouseup', onDocumentMouseUp)
-document.addEventListener('wheel', onMouseWheel)
 
+document.addEventListener('wheel', (event) => {
+    const delta = event.deltaY;
+    const fov = camera.fov - delta * 0.1;
+    camera.fov = fov;
+    camera.updateProjectionMatrix();
+  });
+
+let time = performance.now();
 function animate(){
     requestAnimationFrame(animate)
+    const angle = (performance.now()-time) * rotationSpeed;
+    sphere.rotation.y += angle;
+    time=performance.now();
     renderer.render(scene,camera)
 }
 animate()
