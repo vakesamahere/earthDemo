@@ -3,7 +3,9 @@ import * as THREE from './build/three.module.js';
 
 const dragSensitive = 1
 const n = 0.1
+const fovDisplayPlane = 25
 const rotationSpeed = 0.1/3600
+let fovSet = 100
 
 const scene = new THREE.Scene()
 const camera = new THREE.PerspectiveCamera(
@@ -27,7 +29,7 @@ const earthGeometry = new THREE.SphereGeometry(5,50,50)
 const earth = new THREE.Mesh(
         earthGeometry,
         new THREE.MeshBasicMaterial({
-            map: new THREE.TextureLoader().load('./globe/earth@0.1.jpg')
+            map: new THREE.TextureLoader().load('./globe/earth0.27@32.jpg')
         })
     )
 earth.rotation.set(0.15,Math.PI*0.83,0)
@@ -112,19 +114,15 @@ function onDocumentMouseUp(event) {
     }
 }
 
-
 document.addEventListener('mousedown', onDocumentMouseDown)
 document.addEventListener('mousemove', onDocumentMouseMove)
 document.addEventListener('mouseup', onDocumentMouseUp)
 
 document.addEventListener('wheel', (event) => {
     const delta = event.deltaY;
-    let fov = camera.fov + delta * 0.1;
-    fov=Math.min(125,fov);
-    fov=Math.max(12.5,fov);
-    camera.fov = fov;
-    console.log(fov)
-    camera.updateProjectionMatrix();
+    fovSet = fovSet + delta * 0.1;
+    fovSet = Math.min(125,fovSet);
+    fovSet = Math.max(15,fovSet);
   });
 
 
@@ -150,6 +148,30 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
   }
 
+function updateCamaraScale(){
+    if(camera.fov==fovSet)return;
+    let rate = Math.abs(fovSet-camera.fov)/30;
+    let delta = 0.01 + 0.49*rate;
+    let fov = camera.fov+delta*(camera.fov>fovSet?-1:1);
+    if(fov>=fovSet!=camera.fov>=fovSet){
+        camera.fov = fovSet;
+    }else{
+        camera.fov = fov;
+    }
+    camera.updateProjectionMatrix();
+    if(camera.fov<=fovDisplayPlane){
+        scene.remove(plane);
+    }else{
+        scene.add(plane);
+    }
+    try { 
+        window.cefSharp.postMessage("scale:"+camera.fov)
+    } catch (error) {
+        
+    }
+    
+}
+
 //animate
 let time = performance.now();
 function animate(){
@@ -158,6 +180,7 @@ function animate(){
     if(!isDragging)earth.rotation.y -= angle;
     time=performance.now();
     //console.log(earth.rotation.x,earth.rotation.y)
+    updateCamaraScale();
     renderer.render(scene,camera)
 }
 animate()
