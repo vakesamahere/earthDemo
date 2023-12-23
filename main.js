@@ -1,6 +1,7 @@
 import * as THREE from './build/three.module.js';
 
-
+const earthSurfaceTexturePath = "./globe/earth0.27@32.jpg";
+const earthMapTexturePath = "./globe/map.png";
 const dragSensitive = 1
 const n = 0.1
 const fovDisplayPlane = 25
@@ -24,24 +25,34 @@ renderer.setSize(innerWidth,innerHeight)
 renderer.setPixelRatio(window.devicePixelRatio)
 document.body.appendChild(renderer.domElement)
 
-//create an earth
-const earthGeometry = new THREE.SphereGeometry(5,50,50)
+//地球
+const earthGeometry = new THREE.SphereGeometry(5,100,100)
 const earth = new THREE.Mesh(
         earthGeometry,
         new THREE.MeshBasicMaterial({
-            map: new THREE.TextureLoader().load('./globe/earth0.27@32.jpg')
+            map: new THREE.TextureLoader().load(earthSurfaceTexturePath)
         })
     )
 earth.rotation.set(0.15,Math.PI*0.83,0)
 scene.add(earth)
+const mapGeometry = new THREE.SphereGeometry(5.01,100,100)
+const earthMap = new THREE.Mesh(
+        mapGeometry,
+        new THREE.MeshBasicMaterial({
+            map: new THREE.TextureLoader().load(earthMapTexturePath)
+        })
+    )
+earth.rotation.set(0.15,Math.PI*0.83,0)
+//scene.add(earthMap)
+
 
 //赤道
 
 const geometry = new THREE.TorusGeometry(6.3,0.03,1000,1000,20)
 const material = new THREE.MeshBasicMaterial({
-color: 0xBB7777,
-//side: THREE.DoubleSide
-});
+        color: 0xBB7777
+        //side: THREE.DoubleSide
+    });
 const plane = new THREE.Mesh(geometry, material);
 plane.position.set(0, 0, 0);
 plane.rotation.x = earth.rotation.x + Math.PI / 2;
@@ -61,11 +72,17 @@ document.addEventListener('keydown', (event) => {
   if (event.key === 'Shift') {
     shifting = true;
   }
+  if (event.key === 'Control') {
+    scene.add(earthMap);
+  }
 });
 
 document.addEventListener('keyup', (event) => {
   if (event.key === 'Shift') {
     shifting = false;
+  }
+  if (event.key === 'Control') {
+    scene.remove(earthMap);
   }
 });
 
@@ -169,7 +186,6 @@ function updateCamaraScale(){
     } catch (error) {
         
     }
-    
 }
 
 //animate
@@ -178,6 +194,8 @@ function animate(){
     requestAnimationFrame(animate)
     const angle = -(performance.now()-time) * rotationSpeed;
     if(!isDragging)earth.rotation.y -= angle;
+    earthMap.rotation.x = earth.rotation.x;
+    earthMap.rotation.y = earth.rotation.y;
     time=performance.now();
     //console.log(earth.rotation.x,earth.rotation.y)
     updateCamaraScale();
