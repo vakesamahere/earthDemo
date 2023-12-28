@@ -1,0 +1,10 @@
+{
+    "China":{
+        "zones":[
+            39.9100,
+            116.3925,
+            5
+        ],
+        "link":"regions/China/index.html"
+    }
+}

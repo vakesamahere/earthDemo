@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>跟随球体转动的控件</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    #container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    #sphere {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background-color: #000;
+    }
+
+    #control {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background-color: #fff;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div id="sphere"></div>
+    <div id="control"></div>
+  </div>
+
+  <script>
+    const sphere = document.getElementById('sphere');
+    const control = document.getElementById('control');
+
+    // 创建一个三维变换矩阵
+    const matrix = new THREE.Matrix4();
+
+    // 监听鼠标移动事件
+    document.addEventListener('mousemove', (event) => {
+      // 获取鼠标相对于容器的坐标
+      const x = event.clientX - container.offsetLeft;
+      const y = event.clientY - container.offsetTop;
+
+      // 计算鼠标相对于球体中心的偏移量
+      const offsetX = x - sphere.offsetLeft - sphere.offsetWidth / 2;
+      const offsetY = y - sphere.offsetTop - sphere.offsetHeight / 2;
+
+      // 计算鼠标到球体中心的距离
+      const distance = Math.sqrt(offsetX ** 2 + offsetY ** 2);
+
+      // 如果鼠标距离球体中心小于球体半径，则将控件移动到鼠标位置
+      if (distance < sphere.offsetWidth / 2) {
+        control.style.left = `${x - control.offsetWidth / 2}px`;
+        control.style.top = `${y - control.offsetHeight / 2}px`;
+
+        // 计算控件相对于球体中心的单位向量
+        const unitVector = new THREE.Vector3(offsetX, offsetY, 0).normalize();
+
+        // 将单位向量转换为旋转矩阵
+        matrix.makeRotationAxis(unitVector, Math.PI / 2);
+
+        // 将旋转矩阵应用于球体
+        sphere.style.transform = `translate(-50%, -50%) ${matrix.toString()}`;
+      }
+
+      // 当鼠标靠近控件时，在控制台输出一条消息
+      if (distance < control.offsetWidth / 2 + 10) {
+        console.log('鼠标靠近控件');
+      }
+    });
+  </script>
+</body>
+</html>
