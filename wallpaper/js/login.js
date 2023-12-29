@@ -34,4 +34,9 @@ function login() {
       console.log(element.textContent)
     });
   });
+document.addEventListener("keydown", function(event) {
+  if (event.key === "Escape") {
+    console.log("退出")
+  }
+});
   
